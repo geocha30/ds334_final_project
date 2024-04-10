@@ -1,0 +1,121 @@
+---
+title: "Predicting Growth Potential for Under-Developed Countries in the World"
+author: "George Charalambous"
+format: 
+  html:
+    embed-resources: true
+    table-of-contents: true
+---
+
+## Load the Materials
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+```{r}
+electricity_access <- read_csv("data/access_to_electricity/access_to_electricity.csv", 
+                        skip = 4) |>
+  select(-c(3:34), -c(67:69))
+```
+
+```{r}
+agricultural_land <- read_csv("data/agricultural_land/agricultural_land.csv", 
+                       skip = 4) |>
+  select(-c(3:34), -c(67:69))
+```
+
+```{r}
+freshwater_withdrawals <- read_csv("data/annual_freshwater_withdrawals/freshwater_withdrawals.csv", 
+                            skip = 4) |>
+  select(-c(3:34), -c(67:69))
+```
+
+```{r}
+atms <- read_csv("data/atms/atms.csv", 
+          skip = 4) |>
+  select(-c(3:34), -c(67:69))
+```
+
+```{r}
+precipitation <- read_csv("data/avg_precipitation/precipitation_depth.csv", 
+          skip = 4) |>
+  select(-c(3:34), -c(67:69))
+```
+
+```{r}
+sanitation <- read_csv("data/basic_sanitation_services/basic_sanitation.csv", 
+          skip = 4) |>
+  select(-c(3:34), -c(67:69))
+```
+
+```{r}
+broad_money <- read_csv("data/broad_money/broad_money.csv", 
+          skip = 4) |>
+  select(-c(3:34), -c(67:69))
+```
+
+```{r}
+agr_employment <- read_csv("data/employment_in_agr/employment_in_agr.csv", 
+          skip = 4) |>
+  select(-c(3:34), -c(67:69))
+```
+
+```{r}
+fertility_rate <- read_csv("data/fertility_rate/fertility_rate.csv", 
+          skip = 4) |>
+  select(-c(3:34), -c(67:69))
+```
+
+```{r}
+gov_debt <- read_csv("data/gov_debt/central_gov_debt.csv", 
+          skip = 4) |>
+  select(-c(3:34), -c(67:69))
+```
+
+```{r}
+internet <- read_csv("data/internet/internet.csv", 
+          skip = 4) |>
+  select(-c(3:34), -c(67:69))
+```
+
+```{r}
+birth_life_exp <- read_csv("data/life_expectancy_birth/life_expectancy_birth.csv", 
+          skip = 4) |>
+  select(-c(3:34), -c(67:69))
+```
+
+```{r}
+poverty <- read_csv("data/poverty_headcount/poverty_headcount_ratio.csv", 
+          skip = 4) |>
+  select(-c(3:34), -c(67:69))
+```
+
+```{r}
+school_enrol <- read_csv("data/school_enrollment/school_enrollment.csv", 
+          skip = 4) |>
+  select(-c(3:34), -c(67:69))
+```
+
+## Table 
+
+| Variable | Description                            |
+|----------|----------------------------------------|
+| Access to Electricity | The percentage of population with access to electricity |
+| Agricultural land | The share of land area that is arable, under permanent crops, and under permanent pastures |
+| Annual freshwater withdrawals | Total water withdrawals, not counting evaporation losses from storage basins  |
+| Automated teller machines (ATMs) | Automated teller machines per 100,000 adults |
+| Average precipitation in depth | the long-term average in depth (over space and time) of annual precipitation in mm per year |
+| Basic Sanitation Services | percentage of people using at least basic sanitation services, that is, improved sanitation facilities that are not shared with other households  |
+| Broad money | The sum of currency outside banks, as a fraction of the GDP  |
+| Employment in agriculture | The percentage of total employment engaged in agriculture  |
+| Fertility rate | The number of children that would be born to a woman if she were to live to the end of her childbearing years and bear children in accordance with age-specific fertility rates of the specified year  |
+| Central government debt | The entire stock of direct government fixed-term contractual obligations to others outstanding on a particular date  |
+| Individual Use of Internet | The percentage of population that uses the internet  |
+| Life expectancy at birth | The number of years a newborn infant would live if prevailing patterns of mortality at the time of its birth were to stay the same throughout its life  |
+| Poverty headcount ratio | The percentage of the population living below the national poverty line(s)   |
+| School enrollment, primary and secondary (gross) | The ratio of girls to boys enrolled at primary and secondary levels in public and private schools   |
+
+
+
