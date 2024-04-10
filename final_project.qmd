@@ -1,7 +1,9 @@
 ---
 title: "Predicting Growth Potential for Under-Developed Countries in the World"
 author: "George Charalambous"
-format: 
+execute: 
+  warning: false
+format:
   html:
     embed-resources: true
     table-of-contents: true
@@ -12,6 +14,10 @@ format:
 ```{r}
 library(tidyverse)
 library(here)
+library(maps)
+library(plotly)
+library(colorspace)
+world_df <- map_data("world")
 ```
 
 ```{r}
@@ -21,9 +27,64 @@ electricity_access <- read_csv("data/access_to_electricity/access_to_electricity
 ```
 
 ```{r}
+countries <- c("Afghanistan", "Angola", "Bangladesh", "Benin", "Burkina Faso", "Burundi", "Cambodia", "Central African Republic", "Chad", "Comoros", "Congo, Dem. Rep.", "Djibouti", "Eritrea", "Ethiopia", "Gambia, The", "Guinea", "Guinea-Bissau", "Haiti", "Kiribati", "Lao PDR", "Lesotho", "Liberia", "Madagascar", "Malawi", "Mali", "Mauritania", "Mozambique", "Myanmar", "Nepal", "Niger", "Rwanda", "Sao Tome and Principe", "Senegal", "Sierra Leone", "Solomon Islands", "Somalia", "South Sudan", "Sudan", "Tanzania", "Timor-Leste", "Togo", "Tuvalu", "Uganda", "Yemen, Rep.", "Zambia")
+```
+
+## Experimenting for the Model
+
+```{r}
+underdeveloped_electricity_stats <- electricity_access |>
+  filter(`Country Name` %in% countries) |>
+  pivot_longer(c(3:34), 
+               names_to = "Year", 
+               values_to = "Electricity Access") |>
+  filter(!is.na(`Electricity Access`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean` = mean(`Electricity Access`),
+            `sd` = sd(`Electricity Access`))
+```
+
+## Experimenting for the Shiny App
+
+```{r}
+underdeveloped_electricity <- electricity_access |>
+  filter(`Country Name` %in% countries) |>
+  pivot_longer(c(3:34), 
+               names_to = "Year", 
+               values_to = "Electricity Access") |>
+  filter(!is.na(`Electricity Access`)) 
+```
+
+```{r}
+underdeveloped_map <- left_join(underdeveloped_electricity, world_df, by = c("Country Name"="region"))
+```
+
+```{r}
+plot_1 <- ggplot()+
+  geom_polygon(data = world_df, mapping = aes(x = long, y = lat, group = group), fill = "grey", label = region)+
+  geom_polygon(data = underdeveloped_map, mapping = aes(x = long, y = lat, group = group, fill = `Electricity Access`, label = `Country Name`))+
+  scale_fill_continuous_sequential(palette = "Heat")+
+  theme_minimal()
+
+ggplotly(plot_1, tooltip = "label")
+```
+
+```{r}
 agricultural_land <- read_csv("data/agricultural_land/agricultural_land.csv", 
                        skip = 4) |>
   select(-c(3:34), -c(67:69))
+```
+
+```{r}
+underdeveloped_agriculture_land_stats <- agricultural_land |>
+  filter(`Country Name` %in% countries) |>
+  pivot_longer(c(3:34), 
+               names_to = "Year", 
+               values_to = "Agricultural Land") |>
+  filter(!is.na(`Agricultural Land`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean` = mean(`Agricultural Land`),
+            `sd` = sd(`Agricultural Land`))
 ```
 
 ```{r}
@@ -98,7 +159,7 @@ school_enrol <- read_csv("data/school_enrollment/school_enrollment.csv",
   select(-c(3:34), -c(67:69))
 ```
 
-## Table 
+## Variable Description
 
 | Variable | Description                            |
 |----------|----------------------------------------|
