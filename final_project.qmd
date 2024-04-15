@@ -1,5 +1,5 @@
 ---
-title: "Predicting Growth Potential for Under-Developed Countries in the World"
+title: "Predicting Growth Potential for Under-Developed Countries in the World Using Neural Networks"
 author: "George Charalambous"
 execute: 
   warning: false
@@ -16,6 +16,7 @@ library(tidyverse)
 library(here)
 library(maps)
 library(plotly)
+library(broom)
 library(colorspace)
 world_df <- map_data("world")
 ```
@@ -33,22 +34,20 @@ countries <- c("Afghanistan", "Angola", "Bangladesh", "Benin", "Burkina Faso", "
 ## Experimenting for the Model
 
 ```{r}
-underdeveloped_electricity_stats <- electricity_access |>
-  filter(`Country Name` %in% countries) |>
+electricity_stats <- electricity_access |>
   pivot_longer(c(3:34), 
                names_to = "Year", 
                values_to = "Electricity Access") |>
   filter(!is.na(`Electricity Access`)) |>
   group_by(`Country Name`) |>
-  summarise(`mean` = mean(`Electricity Access`),
-            `sd` = sd(`Electricity Access`))
+  summarise(`mean_under_elec` = mean(`Electricity Access`),
+            `sd_under_elec` = sd(`Electricity Access`))
 ```
 
 ## Experimenting for the Shiny App
 
 ```{r}
 underdeveloped_electricity <- electricity_access |>
-  filter(`Country Name` %in% countries) |>
   pivot_longer(c(3:34), 
                names_to = "Year", 
                values_to = "Electricity Access") |>
@@ -61,7 +60,7 @@ underdeveloped_map <- left_join(underdeveloped_electricity, world_df, by = c("Co
 
 ```{r}
 plot_1 <- ggplot()+
-  geom_polygon(data = world_df, mapping = aes(x = long, y = lat, group = group), fill = "grey", label = region)+
+  geom_polygon(data = world_df, mapping = aes(x = long, y = lat, group = group, label = region), fill = "grey")+
   geom_polygon(data = underdeveloped_map, mapping = aes(x = long, y = lat, group = group, fill = `Electricity Access`, label = `Country Name`))+
   scale_fill_continuous_sequential(palette = "Heat")+
   theme_minimal()
@@ -76,15 +75,14 @@ agricultural_land <- read_csv("data/agricultural_land/agricultural_land.csv",
 ```
 
 ```{r}
-underdeveloped_agriculture_land_stats <- agricultural_land |>
-  filter(`Country Name` %in% countries) |>
+agriculture_land_stats <- agricultural_land |>
   pivot_longer(c(3:34), 
                names_to = "Year", 
                values_to = "Agricultural Land") |>
   filter(!is.na(`Agricultural Land`)) |>
   group_by(`Country Name`) |>
-  summarise(`mean` = mean(`Agricultural Land`),
-            `sd` = sd(`Agricultural Land`))
+  summarise(`mean_agr_land` = mean(`Agricultural Land`),
+            `sd_agr_land` = sd(`Agricultural Land`))
 ```
 
 ```{r}
@@ -94,9 +92,31 @@ freshwater_withdrawals <- read_csv("data/annual_freshwater_withdrawals/freshwate
 ```
 
 ```{r}
+freshwater_withdrawals_stats <- freshwater_withdrawals |>
+  pivot_longer(c(3:34), 
+               names_to = "Year", 
+               values_to = "Freshwater Withdrawals") |>
+  filter(!is.na(`Freshwater Withdrawals`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_water_withd` = mean(`Freshwater Withdrawals`),
+            `sd_water_withd` = sd(`Freshwater Withdrawals`))
+```
+
+```{r}
 atms <- read_csv("data/atms/atms.csv", 
           skip = 4) |>
   select(-c(3:34), -c(67:69))
+```
+
+```{r}
+atms_stats <- atms |>
+  pivot_longer(c(3:34), 
+               names_to = "Year", 
+               values_to = "ATMs") |>
+  filter(!is.na(`ATMs`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_atms` = mean(`ATMs`),
+            `sd_atms` = sd(`ATMs`))
 ```
 
 ```{r}
@@ -106,9 +126,31 @@ precipitation <- read_csv("data/avg_precipitation/precipitation_depth.csv",
 ```
 
 ```{r}
+precipitation_stats <- precipitation |>
+  pivot_longer(c(3:34), 
+               names_to = "Year", 
+               values_to = "Precipitation") |>
+  filter(!is.na(`Precipitation`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_precip` = mean(`Precipitation`),
+            `sd_precip` = sd(`Precipitation`))
+```
+
+```{r}
 sanitation <- read_csv("data/basic_sanitation_services/basic_sanitation.csv", 
           skip = 4) |>
   select(-c(3:34), -c(67:69))
+```
+
+```{r}
+sanitation_stats <- sanitation |>
+  pivot_longer(c(3:34), 
+               names_to = "Year", 
+               values_to = "Sanitation") |>
+  filter(!is.na(`Sanitation`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_sanit` = mean(`Sanitation`),
+            `sd_sanit` = sd(`Sanitation`))
 ```
 
 ```{r}
@@ -118,9 +160,31 @@ broad_money <- read_csv("data/broad_money/broad_money.csv",
 ```
 
 ```{r}
-agr_employment <- read_csv("data/employment_in_agr/employment_in_agr.csv", 
+broad_money_stats <- broad_money |>
+  pivot_longer(c(3:34), 
+               names_to = "Year", 
+               values_to = "Broad Money") |>
+  filter(!is.na(`Broad Money`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_broad` = mean(`Broad Money`),
+            `sd_broad` = sd(`Broad Money`))
+```
+
+```{r}
+agriculture_employment <- read_csv("data/employment_in_agr/employment_in_agr.csv", 
           skip = 4) |>
   select(-c(3:34), -c(67:69))
+```
+
+```{r}
+agriculture_employment_stats <- agriculture_employment |>
+  pivot_longer(c(3:34), 
+               names_to = "Year", 
+               values_to = "Employment in Agriculture") |>
+  filter(!is.na(`Employment in Agriculture`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_empl_agr` = mean(`Employment in Agriculture`),
+            `sd_empl_agr` = sd(`Employment in Agriculture`))
 ```
 
 ```{r}
@@ -130,9 +194,31 @@ fertility_rate <- read_csv("data/fertility_rate/fertility_rate.csv",
 ```
 
 ```{r}
+fertility_rate_stats <- fertility_rate |>
+  pivot_longer(c(3:34), 
+               names_to = "Year", 
+               values_to = "Fertility Rate") |>
+  filter(!is.na(`Fertility Rate`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_fert_rate` = mean(`Fertility Rate`),
+            `sd_fert_rate` = sd(`Fertility Rate`))
+```
+
+```{r}
 gov_debt <- read_csv("data/gov_debt/central_gov_debt.csv", 
           skip = 4) |>
   select(-c(3:34), -c(67:69))
+```
+
+```{r}
+gov_debt_stats <- gov_debt |>
+  pivot_longer(c(3:34), 
+               names_to = "Year", 
+               values_to = "Government Debt") |>
+  filter(!is.na(`Government Debt`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_gov_debt` = mean(`Government Debt`),
+            `sd_gov_debt` = sd(`Government Debt`))
 ```
 
 ```{r}
@@ -142,9 +228,31 @@ internet <- read_csv("data/internet/internet.csv",
 ```
 
 ```{r}
+internet_stats <- internet |>
+  pivot_longer(c(3:34), 
+               names_to = "Year", 
+               values_to = "Internet") |>
+  filter(!is.na(`Internet`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_inter` = mean(`Internet`),
+            `sd_inter` = sd(`Internet`))
+```
+
+```{r}
 birth_life_exp <- read_csv("data/life_expectancy_birth/life_expectancy_birth.csv", 
           skip = 4) |>
   select(-c(3:34), -c(67:69))
+```
+
+```{r}
+birth_life_exp_stats <- birth_life_exp |>
+  pivot_longer(c(3:34), 
+               names_to = "Year", 
+               values_to = "Life Expectancy at Birth") |>
+  filter(!is.na(`Life Expectancy at Birth`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_life_exp` = mean(`Life Expectancy at Birth`),
+            `sd_life_exp` = sd(`Life Expectancy at Birth`))
 ```
 
 ```{r}
@@ -154,10 +262,58 @@ poverty <- read_csv("data/poverty_headcount/poverty_headcount_ratio.csv",
 ```
 
 ```{r}
+poverty_stats <- poverty |>
+  filter(`Country Name` %in% countries) |>
+  pivot_longer(c(3:34), 
+               names_to = "Year", 
+               values_to = "Poverty") |>
+  filter(!is.na(`Poverty`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_pov` = mean(`Poverty`),
+            `sd_pov` = sd(`Poverty`))
+```
+
+```{r}
 school_enrol <- read_csv("data/school_enrollment/school_enrollment.csv", 
           skip = 4) |>
   select(-c(3:34), -c(67:69))
 ```
+
+```{r}
+school_enrol_stats <- school_enrol |>
+  filter(`Country Name` %in% countries) |>
+  pivot_longer(c(3:34), 
+               names_to = "Year", 
+               values_to = "School Enrollment") |>
+  filter(!is.na(`School Enrollment`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_school_enr` = mean(`School Enrollment`),
+            `sd_school_enr` = sd(`School Enrollment`))
+```
+
+```{r}
+full_stats_df <- agriculture_land_stats |>
+  left_join(agriculture_employment_stats, by = "Country Name") |>
+  left_join(atms_stats, by = "Country Name") |>
+  left_join(birth_life_exp_stats, by = "Country Name") |>
+  left_join(broad_money_stats, by = "Country Name") |>
+  left_join(electricity_stats, by = "Country Name") |>
+  left_join(fertility_rate_stats, by = "Country Name") |>
+  left_join(freshwater_withdrawals_stats, by = "Country Name") |>
+  left_join(gov_debt_stats, by = "Country Name") |>
+  left_join(internet_stats, by = "Country Name") |>
+  left_join(poverty_stats, by = "Country Name") |>
+  left_join(precipitation_stats, by = "Country Name") |>
+  left_join(sanitation_stats, by = "Country Name") |>
+  left_join(school_enrol_stats, by = "Country Name") 
+```
+
+```{r}
+full_stats_df <- 
+  full_stats_df |>
+  mutate(Underdeveloped = ifelse(`Country Name` %in% countries, 1, 0))
+```
+
 
 ## Variable Description
 
@@ -177,6 +333,106 @@ school_enrol <- read_csv("data/school_enrollment/school_enrollment.csv",
 | Life expectancy at birth | The number of years a newborn infant would live if prevailing patterns of mortality at the time of its birth were to stay the same throughout its life  |
 | Poverty headcount ratio | The percentage of the population living below the national poverty line(s)   |
 | School enrollment, primary and secondary (gross) | The ratio of girls to boys enrolled at primary and secondary levels in public and private schools   |
+
+## Data Set Investigation
+
+```{r}
+library(GGally)
+ggpairs(data = full_stats_df, columns = c(2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28))
+```
+
+#### Logistic Regression Model Attempt
+
+```{r}
+model_glm <- glm(data = full_stats_df, Underdeveloped~., family = "binomial")
+model_glm
+```
+
+```{r}
+underdeveloped <- full_stats_df |>
+  select(`Country Name`, Underdeveloped) |>
+  filter(Underdeveloped == 0)
+```
+
+```{r}
+developed <- full_stats_df |>
+  select(`Country Name`, Underdeveloped) |>
+  filter(Underdeveloped != 0)
+```
+
+```{r}
+full_stats_df |>
+  names()
+```
+
+```{r}
+# Identify numeric columns
+numeric_cols <- sapply(full_stats_df, is.numeric)
+
+# Compute range for each numeric column, removing NA values
+ranges <- sapply(full_stats_df[, numeric_cols], function(x) {
+  x <- na.omit(x)
+  c(min(x), max(x))
+})
+
+# Print the ranges
+print(ranges)
+```
+
+```{r}
+library(modelr)
+grid <- full_stats_df |>
+  data_grid(
+  mean_agr_land = seq_range(c(0.529988, 83.730378), n = 3),
+  sd_agr_land = seq_range(c(0.00000, 10.17398), n = 3), 
+  mean_empl_agr = seq_range(c(0.3385729, 89.4033177),n = 3),
+  sd_empl_agr = seq_range(c(0.1398931, 14.9939666), n = 3),
+  mean_atms = seq_range(c(0.1511111, 257.4717647), n = 3),
+  sd_atms = seq_range(c(0.03962323, 92.97259482), n = 3),
+  mean_life_exp = seq_range(c(46.14012, 82.19024), n = 3),
+  sd_life_exp = seq_range(c(0.6238412, 12.0160531), n = 3),
+  mean_broad = seq_range(c(9.905998, 281.061859), n = 3),
+  sd_broad = seq_range(c(1.55058, 90.20813), n = 3),
+  mean_under_elec = seq_range(c(4.210244, 100.000000), n = 3), 
+  sd_under_elec = seq_range(c(0.00000, 33.03473), n = 3),
+  mean_fert_rate = seq_range(c(1.104000, 7.502063), n = 3),
+  sd_fert_rate = seq_range(c(0.03911521, 1.47264562), n = 3), 
+  mean_water_withd = seq_range(c(0.02026736, 6495.832000), n = 3), 
+  sd_water_withd = seq_range(c(0.0000, 992.7009), n = 3), 
+  mean_gov_debt = seq_range(c(1.845685, 179.297695), n = 3), 
+  sd_gov_debt = seq_range(c(0.3324068, 76.5222152), n = 3), 
+  mean_inter = seq_range(c(0.00000, 65.78868), n = 3), 
+  sd_inter = seq_range(c(0.00000, 40.63393), n = 3), 
+  mean_pov = seq_range(c(17.7, 82.3), n = 3), 
+  sd_pov = seq_range(c(0.6363961, 12.8358130), n = 3), 
+  mean_precip = seq_range(c(18.100, 3219.742), n = 3), 
+  sd_precip = seq_range(c(0.0000, 112.7921), n = 3),
+  mean_sanit = seq_range(c(6.029739, 100.000000), n = 3), 
+  sd_sanit = seq_range(c(0.00000, 22.67257), n = 3), 
+  mean_school_enr = seq_range(c(0.537100, 1.083108), n = 3), 
+  sd_school_enr = seq_range(c(0.01827953, 0.19308682), n = 3), 
+  Underdeveloped = c("0", "1")
+  ) 
+grid
+```
+
+```{r}
+aug_surv <- aug_surv |>
+  mutate(.predprob = (exp(.fitted)/(1+exp(.fitted))))
+
+ggplot(data = aug_surv, mapping = aes(x = Age, 
+                                      y = .predprob
+                                      ))+
+  geom_line(aes(color = Sex), linewidth = 1.7)+
+  facet_wrap(~Pclass)+
+  geom_rug(data = rug_survive, sides="t", alpha = 0.5, 
+           aes(y = Survived))+
+  geom_rug(data = rug_died, sides="b", alpha = 0.5, 
+           aes(y = Survived))+
+  scale_color_viridis_d()
+```
+
+
 
 
 
