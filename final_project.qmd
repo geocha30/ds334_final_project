@@ -344,20 +344,12 @@ ggpairs(data = full_stats_df, columns = c(2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22
 #### Logistic Regression Model Attempt
 
 ```{r}
-model_glm <- glm(data = full_stats_df, Underdeveloped~mean_agr_land + mean_empl_agr + mean_life_exp + 
-                  mean_under_elec + mean_fert_rate + mean_water_withd + mean_gov_debt + mean_precip, family = "binomial")
-model_glm
-```
-
-```{r}
 underdeveloped <- full_stats_df |>
-  select(`Country Name`, Underdeveloped) |>
   filter(Underdeveloped == 1)
 ```
 
 ```{r}
 developed <- full_stats_df |>
-  select(`Country Name`, Underdeveloped) |>
   filter(Underdeveloped != 1)
 ```
 
@@ -374,47 +366,168 @@ ranges <- sapply(full_stats_df[, numeric_cols], function(x) {
 
 ```{r}
 median_water_withd = median(full_stats_df$mean_water_withd, na.rm = TRUE)
-median__sanit = median(full_stats_df$mean_sanit, na.rm = TRUE)
+median_agr_land = median(full_stats_df$mean_agr_land, na.rm = TRUE)
+median_empl_agr = median(full_stats_df$mean_empl_agr, na.rm = TRUE)
+median_life_exp = median(full_stats_df$mean_life_exp, na.rm = TRUE)
+median_under_elec = median(full_stats_df$mean_under_elec, na.rm = TRUE)
+median_fert_rate = median(full_stats_df$mean_fert_rate, na.rm = TRUE)
+median_water_withd =  median(full_stats_df$mean_water_withd, na.rm = TRUE)
+median_gov_debt = median(full_stats_df$mean_gov_debt, na.rm = TRUE)
+median_precip = median(full_stats_df$mean_precip, na.rm = TRUE)
+median_sanit = median(full_stats_df$mean_sanit, na.rm = TRUE)
 ```
 
 ```{r}
 library(modelr)
+## First Attempt
+# Fit the logistic regression model with selected variables
+model_glm <- glm(Underdeveloped ~ mean_agr_land + mean_life_exp + mean_under_elec + mean_fert_rate + mean_precip,
+                  data = full_stats_df, family = "binomial")
+
+# Check the summary of the model
+summary(model_glm)
+
+# Create the grid for prediction
 grid <- full_stats_df |>
   data_grid(
-  mean_agr_land = seq_range(c(0.529988, 83.730378), n = 3),
-  mean_empl_agr = seq_range(c(0.3385729, 89.4033177),n = 3),
-  mean_life_exp = seq_range(c(46.14012, 82.19024), n = 3),
-  mean_under_elec = seq_range(c(4.210244, 100), n = 3), 
-  mean_fert_rate = seq_range(c(1.104000, 7.502063), n = 3),
-  mean_water_withd = median_water_withd, 
-  mean_gov_debt = seq_range(c(1.845685, 179.297695), n = 3), 
-  mean_precip = seq_range(c(18.100, 3219.742), n = 3), 
-  mean_sanit = median_sanit
-  ) 
-grid
-```
+    mean_agr_land = seq_range(c(0.529988, 83.730378), n = 3),
+    mean_life_exp = seq_range(c(46.14012, 82.19024), n = 3),
+    mean_under_elec = median_under_elec,
+    mean_fert_rate = median_fert_rate,
+    mean_precip = seq_range(c(18.100, 3219.742), n = 3),
+    mean_water_withd = median_water_withd,
+    mean_sanit = median_sanit
+  )
 
-```{r}
-aug_model <- augment(model_glm, newdata = grid, 
-                     se_fit = TRUE)
-```
+# Predict probabilities for the grid
+aug_model <- augment(model_glm, newdata = grid, se_fit = TRUE) |>
+  mutate(.predprob = plogis(.fitted))
 
-```{r}
-aug_model <- aug_model |>
-  mutate(.predprob = (exp(.fitted)/(1+exp(.fitted))))
-```
-
-```{r}
-ggplot(data = aug_model, mapping = aes(x = mean_agr_land, 
-                                       y = .predprob)) +
-  geom_line(color = "blue", linewidth = 1) +
-  geom_ribbon(aes(ymin = .predprob - 1.96 * .se.fit,
-                  ymax = .predprob + 1.96 * .se.fit),
-              fill = "lightblue", alpha = 0.5) +
+# Visualize the predictions
+ggplot(data = aug_model, aes(x = mean_life_exp, y = .predprob)) +
+  geom_line(aes(color = as.factor(round(mean_agr_land, 2)))) +
+  facet_wrap(~mean_precip)+
+  labs(x = "Mean Life Expectancy", y = "Predicted Probability", color = "Mean Agricultural Land")+
   theme_minimal()
 ```
 
+```{r}
+## Second Attempt
+# Fit the logistic regression model with selected variables
+model_glm <- glm(Underdeveloped ~ mean_agr_land + mean_life_exp + mean_under_elec + mean_fert_rate + mean_precip,
+                  data = full_stats_df, family = "binomial")
 
+# Create the grid for prediction
+grid <- full_stats_df |>
+  data_grid(
+    mean_agr_land = seq_range(c(0.529988, 83.730378), n = 3),
+    mean_life_exp = median_life_exp,
+    mean_under_elec = seq_range(c(4.210244, 100), n = 3),
+    mean_fert_rate = median_fert_rate,
+    mean_precip = seq_range(c(18.100, 3219.742), n = 3),
+    mean_water_withd = median_water_withd,
+    mean_sanit = median_sanit
+  )
+
+# Predict probabilities for the grid
+aug_model <- augment(model_glm, newdata = grid, se_fit = TRUE) |>
+  mutate(.predprob = plogis(.fitted))
+
+# Visualize the predictions
+ggplot(data = aug_model, aes(x = mean_agr_land, y = .predprob)) +
+  geom_line(aes(color = as.factor(round(mean_under_elec, 2)))) +
+  facet_wrap(~mean_precip) +
+  labs(x = "Mean Agricultural Land", y = "Predicted Probability", color = "Mean Precipitation Rate") +
+  theme_minimal()
+```
+
+```{r}
+# Combination 2
+grid <- full_stats_df |>
+  data_grid(
+    mean_agr_land = median_agr_land,
+    mean_life_exp = seq_range(c(46.14012, 82.19024), n = 3),
+    mean_under_elec = median_under_elec,
+    mean_fert_rate = seq_range(c(1.104000, 7.502063), n = 3),
+    mean_precip = median_precip,
+    mean_water_withd = seq_range(c(0.02026736, 6495.832000), n = 3),
+    mean_sanit = median_sanit
+  )
+
+# Predict probabilities for the grid
+aug_model <- augment(model_glm, newdata = grid, se_fit = TRUE) |>
+  mutate(.predprob = plogis(.fitted))
+
+# Visualize the predictions
+ggplot(data = aug_model, aes(x = mean_life_exp, y = .predprob)) +
+  geom_line(aes(color = as.factor(round(mean_water_withd, 2)))) +
+  facet_wrap(~mean_fert_rate) +
+  labs(x = "Mean Life Expectancy", y = "Predicted Probability", color = "Mean Fertility Rate") +
+  theme_minimal()
+
+# Combination 3
+grid <- full_stats_df |>
+  data_grid(
+    mean_agr_land = seq_range(c(0.529988, 83.730378), n = 3),
+    mean_life_exp = median_life_exp,
+    mean_under_elec = median_under_elec,
+    mean_fert_rate = median_fert_rate,
+    mean_precip = seq_range(c(18.100, 3219.742), n = 3),
+    mean_water_withd = median_water_withd,
+    mean_sanit = seq_range(c(6.029739, 100), n = 3)
+  )
+
+# Predict probabilities for the grid
+aug_model <- augment(model_glm, newdata = grid, se_fit = TRUE) |>
+  mutate(.predprob = plogis(.fitted))
+
+# Visualize the predictions
+ggplot(data = aug_model, aes(x = mean_agr_land, y = .predprob)) +
+  geom_line(aes(color = as.factor(round(mean_sanit, 2)))) +
+  facet_wrap(~mean_precip) +
+  labs(x = "Mean Agricultural Land", y = "Predicted Probability", color = "Mean Sanitation Rate") +
+  theme_minimal()
+
+# Combination 4
+grid <- full_stats_df |>
+  data_grid(
+    mean_agr_land = median_agr_land,
+    mean_life_exp = seq_range(c(46.14012, 82.19024), n = 3),
+    mean_under_elec = seq_range(c(4.210244, 100), n = 3),
+    mean_fert_rate = median_fert_rate,
+    mean_precip = seq_range(c(18.100, 3219.742), n = 3),
+    mean_water_withd = median_water_withd,
+    mean_sanit = median_sanit
+  )
+
+# Predict probabilities for the grid
+aug_model <- augment(model_glm, newdata = grid, se_fit = TRUE) |>
+  mutate(.predprob = plogis(.fitted))
+
+# Visualize the predictions
+ggplot(data = aug_model, aes(x = mean_life_exp, y = .predprob)) +
+  geom_line(aes(color = as.factor(round(mean_under_elec, 2)))) +
+  facet_wrap(~mean_precip) +
+  labs(x = "Mean Life Expectancy", y = "Predicted Probability", color = "Mean Electricity Access Rate") +
+  theme_minimal()
+```
+
+In general, what we have seen from the above plots is that attempting to fit a Logistic Regression Model give different combinations of proxies does not do a good job. Therefore, a more complex model might be able to interpret the relationhips between the various variables that we have. 
+
+```{r}
+library(keras)
+
+# Preprocess the data
+scaled_data <- scale(full_stats_df[, sapply(full_stats_df, is.numeric)])
+set.seed(123)
+
+# Split the data into training and testing sets 80% and 20%, as we did in Machine Learning
+train_indices <- sample(1:nrow(scaled_data), 0.8 * nrow(scaled_data))
+test_indices <- setdiff(1:nrow(scaled_data), train_indices)
+
+train_data <- scaled_data[train_indices, ]
+test_data <- scaled_data[test_indices, ]
+```
 
 
 
