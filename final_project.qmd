@@ -359,12 +359,12 @@ ggplot(data = aug_model, aes(x = mean_fert_rate, y = .predprob)) +
 grid <- full_stats_df |>
   data_grid(
     mean_agr_land = median_agr_land,
-    mean_life_exp = seq_range(c(-2.627905, 1.588857), n = 20),
+    mean_life_exp = seq_range(c(-2.627905, 1.588857), n = 10),
     mean_elec_access = median_elec_access,
-    mean_fert_rate = seq_range(c(-1.274220, 3.082338), n = 20),
+    mean_fert_rate = seq_range(c(-1.274220, 3.082338), n = 10),
     mean_sanit = median_sanit, 
     mean_inter = median_internet,
-    mean_pop_growth =seq_range(c(-2.022998, 4.438928), n = 5),
+    mean_pop_growth =seq_range(c(-2.022998, 4.438928), n = 3),
     mean_prim_school = median_primary_school, 
     mean_total_unempl = median_total_unempl
   )
@@ -391,10 +391,10 @@ grid <- full_stats_df |>
     mean_agr_land = median_agr_land,
     mean_life_exp = median_life_exp,
     mean_elec_access = median_elec_access,
-    mean_fert_rate = seq_range(c(-1.308798, 2.850897), n = 20),
+    mean_fert_rate = seq_range(c(-1.308798, 2.850897), n = 10),
     mean_sanit = median_sanit, 
-    mean_inter = seq_range(c(-1.511381, 2.405766), n = 20),
-    mean_pop_growth =seq_range(c(-2.221712, 3.779502), n = 5),
+    mean_inter = seq_range(c(-1.511381, 2.405766), n = 10),
+    mean_pop_growth =seq_range(c(-2.221712, 3.779502), n = 3),
     mean_prim_school = median_primary_school, 
     mean_total_unempl = median_total_unempl
   )
@@ -477,7 +477,7 @@ plot <- ggplot(data = curve, aes(x = seq_along(train))) +
 network |> evaluate(xtest, ytest)
 ```
 
-
+Take home message: Not enough data, how does the model do with developed countries
 
 
 
