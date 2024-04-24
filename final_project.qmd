@@ -329,9 +329,9 @@ model_glm <- glm(Underdeveloped ~ .,
 grid <- full_stats_df |>
   data_grid(
     mean_agr_land = median_agr_land,
-    mean_life_exp = seq_range(c(-2.627905, 1.588857), n = 3),
-    mean_elec_access = seq_range(c(-2.6785616, 0.7295024), n = 3),
-    mean_fert_rate = seq_range(c(-1.274220, 3.082338), n = 3),
+    mean_life_exp = seq_range(c(-2.627905, 1.588857), n = 20),
+    mean_elec_access = seq_range(c(-2.6785616, 0.7295024), n = 5),
+    mean_fert_rate = seq_range(c(-1.274220, 3.082338), n = 20),
     mean_sanit = median_sanit, 
     mean_inter = median_internet,
     mean_pop_growth = median_population_growth,
@@ -346,7 +346,7 @@ aug_model <- augment(model_glm, newdata = grid, se_fit = TRUE) |>
 # Visualize the predictions
 ggplot(data = aug_model, aes(x = mean_fert_rate, y = .predprob)) +
   geom_line(aes(color = as.factor(round(mean_life_exp, 2)))) +
-  facet_wrap(~as.factor(mean_elec_access)) +
+  facet_wrap(~as.factor(round(mean_elec_access, 2))) +
   labs(x = "Standardized Mean Fertility Rate", y = "Predicted Probability", color = "Standardized Mean Electricity Access") +
   theme_minimal()
 ```
@@ -359,12 +359,12 @@ ggplot(data = aug_model, aes(x = mean_fert_rate, y = .predprob)) +
 grid <- full_stats_df |>
   data_grid(
     mean_agr_land = median_agr_land,
-    mean_life_exp = seq_range(c(-2.627905, 1.588857), n = 3),
+    mean_life_exp = seq_range(c(-2.627905, 1.588857), n = 20),
     mean_elec_access = median_elec_access,
-    mean_fert_rate = seq_range(c(-1.274220, 3.082338), n = 3),
+    mean_fert_rate = seq_range(c(-1.274220, 3.082338), n = 20),
     mean_sanit = median_sanit, 
     mean_inter = median_internet,
-    mean_pop_growth =seq_range(c(-2.022998, 4.438928), n = 3),
+    mean_pop_growth =seq_range(c(-2.022998, 4.438928), n = 5),
     mean_prim_school = median_primary_school, 
     mean_total_unempl = median_total_unempl
   )
@@ -391,10 +391,10 @@ grid <- full_stats_df |>
     mean_agr_land = median_agr_land,
     mean_life_exp = median_life_exp,
     mean_elec_access = median_elec_access,
-    mean_fert_rate = seq_range(c(-1.308798, 2.850897), n = 3),
+    mean_fert_rate = seq_range(c(-1.308798, 2.850897), n = 20),
     mean_sanit = median_sanit, 
-    mean_inter = seq_range(c(-1.511381, 2.405766), n = 3),
-    mean_pop_growth =seq_range(c(-2.221712, 3.779502), n = 3),
+    mean_inter = seq_range(c(-1.511381, 2.405766), n = 20),
+    mean_pop_growth =seq_range(c(-2.221712, 3.779502), n = 5),
     mean_prim_school = median_primary_school, 
     mean_total_unempl = median_total_unempl
   )
@@ -411,12 +411,11 @@ ggplot(data = aug_model, aes(x = mean_fert_rate, y = .predprob)) +
   theme_minimal()
 ```
 
+
 In general, what we have seen from the above plots is that attempting to fit a Logistic Regression Model given different combinations of proxies does not do a good job. Therefore, a more complex model might be able to interpret the relationships between the various variables that we have. 
 
 ```{r}
 library(keras)
-library(tensorflow)
-install_tensorflow(envname = "r-tensorflow")
 ```
 
 ```{r}
@@ -476,7 +475,6 @@ plot <- ggplot(data = curve, aes(x = seq_along(train))) +
 
 # Evaluate the test data
 network |> evaluate(xtest, ytest)
-
 ```
 
 
