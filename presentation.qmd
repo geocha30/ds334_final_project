@@ -1,0 +1,313 @@
+---
+title: "Predicting Growth Potential for Under-Developed Countries in the World Using Neural Networks Presentation"
+format: 
+  revealjs:
+    fontsize: 12
+---
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+library(tidyverse)
+library(here)
+library(maps)
+library(plotly)
+library(broom)
+library(colorspace)
+world_df <- map_data("world")
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+electricity_access <- read_csv("data/access_to_electricity/access_to_electricity.csv", 
+                        skip = 4) |>
+  select(-c(3:44), -c(67:69))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+countries <- c("Afghanistan", "Angola", "Bangladesh", "Benin", "Burkina Faso", "Burundi", "Cambodia", "Central African Republic", "Chad", "Comoros", "Congo, Dem. Rep.", "Djibouti", "Eritrea", "Ethiopia", "Gambia, The", "Guinea", "Guinea-Bissau", "Haiti", "Kiribati", "Lao PDR", "Lesotho", "Liberia", "Madagascar", "Malawi", "Mali", "Mauritania", "Mozambique", "Myanmar", "Nepal", "Niger", "Rwanda", "Sao Tome and Principe", "Senegal", "Sierra Leone", "Solomon Islands", "Somalia", "South Sudan", "Sudan", "Tanzania", "Timor-Leste", "Togo", "Tuvalu", "Uganda", "Yemen, Rep.", "Zambia")
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+electricity_stats <- electricity_access |>
+  pivot_longer(c(3:24), 
+               names_to = "Year", 
+               values_to = "Electricity Access") |>
+  filter(!is.na(`Electricity Access`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_elec_access` = mean(`Electricity Access`, na.rm = TRUE),
+            `sd_elec_access` = sd(`Electricity Access`, na.rm = TRUE))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+underdeveloped_electricity <- electricity_access |>
+  pivot_longer(c(3:24), 
+               names_to = "Year", 
+               values_to = "Electricity Access") |>
+  filter(!is.na(`Electricity Access`)) 
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+agricultural_land <- read_csv("data/agricultural_land/agricultural_land.csv", 
+                       skip = 4) |>
+  select(-c(3:44), -c(67:69))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+agriculture_land_stats <- agricultural_land |>
+  pivot_longer(c(3:24), 
+               names_to = "Year", 
+               values_to = "Agricultural Land") |>
+  filter(!is.na(`Agricultural Land`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_agr_land` = mean(`Agricultural Land`, na.rm = TRUE),
+            `sd_agr_land` = sd(`Agricultural Land`, na.rm = TRUE))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+population_growth <- read_csv("~/Desktop/Sixth Semester/ds334_final_project/ds334_final_project/data/population_growth_annual/population_growth.csv", 
+                            skip = 4) |>
+  select(-c(3:44), -c(67:69))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+population_growth_stats <- population_growth |>
+  pivot_longer(c(3:24), 
+               names_to = "Year", 
+               values_to = "Population Growth Rate") |>
+  filter(!is.na(`Population Growth Rate`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_pop_growth` = mean(`Population Growth Rate`, na.rm = TRUE),
+            `sd_pop_growth` = sd(`Population Growth Rate`, na.rm = TRUE))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+primary_school_enrol <- read_csv("~/Desktop/Sixth Semester/ds334_final_project/ds334_final_project/data/primary_school_enrollment/primary_school.csv", 
+          skip = 4) |>
+  select(-c(3:44), -c(67:69))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+primary_school_enrol_stats <- primary_school_enrol |>
+  pivot_longer(c(3:24), 
+               names_to = "Year", 
+               values_to = "Primary School Enrollment Rate") |>
+  filter(!is.na(`Primary School Enrollment Rate`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_prim_school` = mean(`Primary School Enrollment Rate`, na.rm = TRUE),
+            `sd_prim_school` = sd(`Primary School Enrollment Rate`,na.rm = TRUE))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+total_unemployment <- read_csv("~/Desktop/Sixth Semester/ds334_final_project/ds334_final_project/data/total_unemployment/total_unemployment.csv", 
+          skip = 4) |>
+  select(-c(3:44), -c(67:69))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+total_unemployment_stats <- total_unemployment |>
+  pivot_longer(c(3:24), 
+               names_to = "Year", 
+               values_to = "Total Unemployment") |>
+  filter(!is.na(`Total Unemployment`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_total_unempl` = mean(`Total Unemployment`, na.rm = TRUE),
+            `sd_total_unempl` = sd(`Total Unemployment`, na.rm = TRUE))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+sanitation <- read_csv("data/basic_sanitation_services/basic_sanitation.csv", 
+          skip = 4) |>
+  select(-c(3:44), -c(67:69))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+sanitation_stats <- sanitation |>
+  pivot_longer(c(3:24), 
+               names_to = "Year", 
+               values_to = "Sanitation") |>
+  filter(!is.na(`Sanitation`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_sanit` = mean(`Sanitation`, na.rm = TRUE),
+            `sd_sanit` = sd(`Sanitation`, na.rm = TRUE))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+fertility_rate <- read_csv("data/fertility_rate/fertility_rate.csv", 
+          skip = 4) |>
+  select(-c(3:44), -c(67:69))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+fertility_rate_stats <- fertility_rate |>
+  pivot_longer(c(3:24), 
+               names_to = "Year", 
+               values_to = "Fertility Rate") |>
+  filter(!is.na(`Fertility Rate`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_fert_rate` = mean(`Fertility Rate`, na.rm = TRUE),
+            `sd_fert_rate` = sd(`Fertility Rate`, na.rm = TRUE))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+internet <- read_csv("data/internet/internet.csv", 
+          skip = 4) |>
+  select(-c(3:44), -c(67:69))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+internet_stats <- internet |>
+  pivot_longer(c(3:24), 
+               names_to = "Year", 
+               values_to = "Internet") |>
+  filter(!is.na(`Internet`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_inter` = mean(`Internet`, na.rm = TRUE),
+            `sd_inter` = sd(`Internet`, na.rm = TRUE))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+birth_life_exp <- read_csv("data/life_expectancy_birth/life_expectancy_birth.csv", 
+          skip = 4) |>
+  select(-c(3:44), -c(67:69))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+birth_life_exp_stats <- birth_life_exp |>
+  pivot_longer(c(3:24), 
+               names_to = "Year", 
+               values_to = "Life Expectancy at Birth") |>
+  filter(!is.na(`Life Expectancy at Birth`)) |>
+  group_by(`Country Name`) |>
+  summarise(`mean_life_exp` = mean(`Life Expectancy at Birth`, na.rm = TRUE),
+            `sd_life_exp` = sd(`Life Expectancy at Birth`, na.rm = TRUE))
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+full_stats_df <- agriculture_land_stats |>
+  left_join(birth_life_exp_stats, by = "Country Name") |>
+  left_join(electricity_stats, by = "Country Name") |>
+  left_join(fertility_rate_stats, by = "Country Name") |>
+  left_join(internet_stats, by = "Country Name") |>
+  left_join(sanitation_stats, by = "Country Name") |>
+  left_join(population_growth_stats, by = "Country Name") |>
+  left_join(primary_school_enrol_stats, by = "Country Name") |>
+  left_join(total_unemployment_stats, by = "Country Name") 
+```
+
+```{r}
+#| echo: false
+#| output: false
+#| warning: false
+full_stats_df <- 
+  full_stats_df |>
+  mutate(Underdeveloped = ifelse(`Country Name` %in% countries, 1, 0))
+```
+
+
+## Data
+
+* 
+| Variable | Description                            |
+|----------|----------------------------------------
+| agriculture_land | The share of land area that is arable, under permanent crops, and under permanent pastures |
+| birth_life_exp | The number of years a newborn infant would live if prevailing patterns of mortality at the time of its birth were to stay the same throughout its life |
+| electricity_access | The percentage of population with access to electricity |
+| fertility_rate | The number of children that would be born to a woman if she were to live to the end of her childbearing years and bear children in accordance with age-specific fertility rates of the specified year |
+| internet | The percentage of population that uses the internet |
+| population_growth | Annual population growth rate for year t is the exponential rate of growth of midyear population from year t-1 to t, expressed as a percentage |
+| primary_school_enrol | Gross enrollment ratio is the ratio of total enrollment, regardless of age, to the population of the age group that officially corresponds to the level of education shown |
+| sanitation | Percentage of people using at least basic sanitation services, that is, improved sanitation facilities that are not shared with other households |
+| total_unemployment | The share of the labor force that is without work but available for and seeking employment |
+
+## Question of Interest
+
+## Visualization 1
+
+```{r}
+#| output: false
+underdeveloped_map <- world_df |>
+  mutate(Underdeveloped = as.factor(ifelse(region %in% countries, 1, 0)))
+```
+
+```{r}
+#| output: false
+plot_1 <- ggplot()+
+  geom_polygon(data = world_df, mapping = aes(x = long, y = lat, group = group, label = region), fill = "grey")+
+  geom_polygon(data = underdeveloped_map, mapping = aes(x = long, y = lat, group = group, fill = Underdeveloped, label = region))+
+  scale_fill_manual(values = c("0" = "grey", "1" = "darkblue")) + 
+  theme_minimal()
+
+ggplotly(plot_1, tooltip = "label")
+```
+
+
+
+base_size = for larger plot fonts
+
+
+## Visualization 2
+

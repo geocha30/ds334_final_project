@@ -233,7 +233,7 @@ full_stats_df <-
 
 ## Variable Description
 
-| Variable | Description
+| Variable | Description                            |
 |----------|----------------------------------------
 | agriculture_land | The share of land area that is arable, under permanent crops, and under permanent pastures |
 | birth_life_exp | The number of years a newborn infant would live if prevailing patterns of mortality at the time of its birth were to stay the same throughout its life |
