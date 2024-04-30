@@ -256,17 +256,13 @@ ggpairs(data = full_stats_df, columns = c(2, 4, 6, 8, 10, 12, 14, 16, 18))
 
 ```{r}
 # Get the means column for each variable
-# Preprocess the data
 full_means_df <- full_stats_df |>
   select(contains("mean"))
 
-# Subset the data frame to only numeric columns
 numeric_columns <- sapply(full_means_df, is.numeric)
 
-# Scale the data
 scaled_data <- scale(full_means_df[, numeric_columns])
 
-# Add the "Underdeveloped" column back to the scaled data
 scaled_data_with_undev <- scaled_data |>
   as.data.frame() |>
   mutate(Underdeveloped = full_stats_df$Underdeveloped) |>
@@ -414,72 +410,123 @@ ggplot(data = aug_model, aes(x = mean_fert_rate, y = .predprob)) +
 
 In general, what we have seen from the above plots is that attempting to fit a Logistic Regression Model given different combinations of proxies does not do a good job. Therefore, a more complex model might be able to interpret the relationships between the various variables that we have. 
 
-```{r}
-library(keras)
-```
-
-```{r}
-library(reticulate)
-py_install("pandas")
-```
-
-```{r}
-set.seed(123)
-
-# Split the data into training and testing sets 80% and 20%, as we did in Machine Learning
-train_indices <- sample(1:nrow(scaled_data_with_undev), 0.8 * nrow(scaled_data_with_undev))
-test_indices <- setdiff(1:nrow(scaled_data_with_undev), train_indices)
-
-train_data <- scaled_data_with_undev[train_indices, ]
-test_data <- scaled_data_with_undev[test_indices, ]
-```
-
-```{r}
-# Design the network
-network <- keras_model_sequential() |>
-  layer_dense(units = 2, activation = "relu", input_shape = c(4)) |>
-  layer_dense(units = 4, activation="relu") |>
-  layer_dense(units = 5, activation="relu") |>
-  layer_dense(units = 4, activation="relu") |>
-  layer_dense(units = 1, activation = "sigmoid")
-```
-
-```{r}
-# Specify how the network will be trained
-network |> compile(
-  loss = "binary_crossentropy",
-  metrics = c("accuracy"),
-  optimizer = optimizer_adam(learning_rate = 0.01)
-  ## might add regularization
-)
-```
-
-```{r}
-# Train the network
-history <- network |> fit(
-  xtrain, ytrain,
-  epochs = 100,
-  validation_data = list(xval, yval),
-  verbose = 0
-)
-
-# Plot the learning curves
-curve <- data.frame(train = history$metrics$accuracy, val = history$metrics$val_accuracy)
-
-plot <- ggplot(data = curve, aes(x = seq_along(train))) +
-  geom_line(aes(y = train, color = "Train")) +
-  geom_line(aes(y = val, color = "Validation")) +
-  scale_color_manual(values = c("Train" = "blue", "Validation" = "red")) +
-  labs(x = "Epoch", y = "Accuracy") +
-  theme_minimal()
-
-# Evaluate the test data
-network |> evaluate(xtest, ytest)
-```
+Used Collab Notebook to Construct and Fit a Neural Network
 
 Take home message: Not enough data, how does the model do with developed countries
 
+```{r}
+total_countries <- full_stats_df |>
+  select(`Country Name`)
+```
 
+```{r}
+full_means_df <- full_means_df |>
+  cbind(total_countries)
+```
+
+```{r}
+total_countries_no_na <- full_means_df |>
+  na.omit() |>
+  select(`Country Name`)
+```
+
+```{r}
+scaled_data_with_undev_arranged <- scaled_data_with_undev |>
+  cbind(total_countries_no_na) |>
+  arrange(mean_agr_land)|>
+  select(mean_agr_land, `Country Name`)
+```
+
+```{r}
+predictions <- read.csv("data/predicted_dataset.csv")
+```
+
+```{r}
+predictions <- predictions |>
+  arrange(mean_agr_land) |>
+  cbind(`Country Name` = scaled_data_with_undev_arranged$`Country Name`)
+```
+
+First Map with the Original Data Set 
+
+```{r}
+#| output: false
+underdeveloped_map <- world_df |>
+  mutate(Underdeveloped = as.factor(ifelse(region %in% countries, 1, 0)))
+```
+
+```{r}
+#| output: false
+plot_1 <- ggplot()+
+  geom_polygon(data = world_df, mapping = aes(x = long, y = lat, group = group, label = region), fill = "grey")+
+  geom_polygon(data = underdeveloped_map, mapping = aes(x = long, y = lat, group = group, fill = Underdeveloped, label = region))+
+  scale_fill_manual(values = c("0" = "grey", "1" = "darkblue")) + 
+  theme_minimal()+
+  theme(
+    legend.position = "none"
+  )
+
+ggplotly(plot_1, tooltip = "label")
+```
+
+Second Map with the Predicted Data Set
+
+```{r}
+#| output: false
+predictions <- predictions |>
+  mutate(Underdeveloped = ifelse(Predicted_output >= 0.5, 1, 0))
+```
+
+```{r}
+predicted_full_df <- left_join(predictions, world_df, by = c("Country Name" = "region"))
+```
+
+```{r}
+#| output: false
+plot_2 <- ggplot()+
+  geom_polygon(data = world_df, mapping = aes(x = long, y = lat, group = group, label = region), fill = "grey")+
+    geom_polygon(data = predicted_full_df, mapping = aes(x = long, y = lat, group = group, fill = as.factor(Underdeveloped), 
+                                                         label = `Country Name`))+
+  scale_fill_manual(values = c("0" = "grey", "1" = "darkred")) + 
+  theme_minimal()+
+  theme(
+    legend.position = "none"
+  )
+
+ggplotly(plot_2, tooltip = "label")
+```
+
+Table with the Number of Developed and Underdeveloped, comparing the actual numbers to the ones predicted from the neural network
+
+```{r}
+summary_actual <- scaled_data_with_undev |>
+  summarise(Underdeveloped = sum(Underdeveloped), 
+            Developed = n() - Underdeveloped)
+```
+
+```{r}
+summary_predicted <- predictions |>
+  summarise(Underdeveloped = sum(Underdeveloped), 
+            Developed = n() - Underdeveloped)
+```
+
+```{r}
+library(pander)
+
+# Convert summaries to data frames
+summary_actual_df <- as.data.frame(summary_actual)
+summary_predicted_df <- as.data.frame(summary_predicted)
+
+# Add row names for clarity
+row.names(summary_actual_df) <- "Actual"
+row.names(summary_predicted_df) <- "Predicted"
+
+combined_summary <- rbind(summary_actual_df, summary_predicted_df)
+
+# Print combined summary using pander
+pander(combined_summary, caption = "Summary of Actual and Predicted Classes")
+
+```
 
 
 
