@@ -487,7 +487,7 @@ The visualizations from the plots above suggest that attempting to fit a Logisti
 
 ## Neural Network Application
 
-Due to the disappointing results from the application of logistic regression models, this next attempt incorporates a much more complex classification model used in machine learning, a neural network. It is a method that teaches computers to process data in a way that is inspired by the human brain. Due to the complexity of our data set, this model, by incorporating its entirety, might be able to capture the significant relationships among the variables and produce somewhat accurate results regarding the classification of countries regarding their development status. 
+Due to the disappointing results from the application of logistic regression models, this next attempt incorporates a much more complex classification model used in machine learning, a neural network. It is a method that teaches computers to process data in a way that is inspired by the human brain. Due to the complexity of our data set, this model, by incorporating its entirety, might be able to capture the significant relationships among the variables and produce somewhat accurate results regarding the classification of countries regarding their development status. This neural network was developed and trained on a Colab Notebook, which created the predicted data set which was then loaded into this project. 
 
 The data is first split into training and testing sets. Then, a sequential neural network model is constructed with several dense layers, each employing a RELU activation function. The final layer uses a sigmoid activation function to produce binary classification predictions for an observation (Underdeveloped or Developed). The model is compiled with the Adam optimizer, binary cross-entropy loss function, and accuracy metric. Subsequently, the network is trained on the training data for 100 epochs. The training progress is monitored using the history object to track metrics such as accuracy and loss over epochs.
 After some experimenting with the hyperparameters, this models has reached a 95.65% accuracy, indicating a very good performance which can be seen below in the map.
@@ -594,8 +594,6 @@ ggplotly(plot_2, tooltip = "label")
 
 While the maps above indicate that the network does an exceptional job given the classification task provided, the table below raises some concerns. According to the table below, the model classified 51 countries as underdeveloped, when there are only 42. On the other hand, the model classified 176 countries as developed, close to their real number of 185. This suggests that while the model performs relatively well in identifying developed countries, it struggles more with accurately classifying underdeveloped ones. Proportionally speaking, the model had a successful classification rate of 95.14% for developed countries, falling to 82.35% for underdeveloped ones. This result stresses the initial question this project was aimed to answer: THERE IS NOT ENOUGH DATA FOR UNDERDEVELOPED COUNTRIES. Therefore, with insufficient data to work with, the provision of accurate and precise solutions for countries in the underdeveloped category seems far from reality. 
 
-This project encourages people and myself included, to utilize it as a starting point and attempt to create a larger data set, covering a wider range of variables to produce a more accurate classifier. In addition to that, one can examine the sectors of a country that there is urgent need for more data and suggest strategies that would results to the consolidation of useful insights, leading to more targeted and sufficient research. 
-
 ```{r}
 #| echo: false
 #| output: false
@@ -631,12 +629,7 @@ pander(combined_summary, caption = "Summary of Actual and Predicted Classes")
 
 ```
 
-
-
-
-
-
-
+This project encourages people and myself included, to utilize it as a starting point and attempt to create a larger data set, covering a wider range of variables to produce a more accurate classifier. In addition to that, one can examine the sectors of a country that there is urgent need for more data and suggest strategies that would results to the consolidation of useful insights, leading to more targeted and sufficient research. 
 
 
 
