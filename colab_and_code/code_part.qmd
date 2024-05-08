@@ -247,16 +247,6 @@ ranges <- sapply(scaled_data_with_undev[, numeric_cols], function(x) {
 ```
 
 ```{r}
-underdeveloped <- scaled_data_with_undev |>
-  filter(Underdeveloped == 1)
-```
-
-```{r}
-developed <- scaled_data_with_undev |>
-  filter(Underdeveloped != 1) 
-```
-
-```{r}
 model_glm <- glm(Underdeveloped ~ .,
                   data = scaled_data_with_undev, family = "binomial")
 

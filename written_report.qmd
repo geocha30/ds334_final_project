@@ -358,20 +358,6 @@ ranges <- sapply(scaled_data_with_undev[, numeric_cols], function(x) {
 ```{r}
 #| echo: false
 #| output: false
-underdeveloped <- scaled_data_with_undev |>
-  filter(Underdeveloped == 1)
-```
-
-```{r}
-#| echo: false
-#| output: false
-developed <- scaled_data_with_undev |>
-  filter(Underdeveloped != 1) 
-```
-
-```{r}
-#| echo: false
-#| output: false
 # Fit the logistic regression model with selected variables using their range and the median for the rest
 # Used the first model to come up with the most "significant" ones
 
