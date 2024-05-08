@@ -282,11 +282,19 @@ full_stats_df <-
 | sanitation | Percentage of people using at least basic sanitation services, that is, improved sanitation facilities that are not shared with other households |
 | total_unemployment | The share of the labor force that is without work but available for and seeking employment |
 
+```{r}
+# Confusion Matrix
+#| output: false
+#| echo: false
+library(GGally)
+ggpairs(data = full_stats_df, columns = c(2, 4, 6, 8, 10, 12, 14, 16, 18))
+```
+
 ## Logistic Regression Model Attempt
 
 The first attempt of creating a classifier comes through the use of logistic regression models. This modelling method was chosen as the initial one, as it does an exceptional job with handling such diverse data sets resulting to high interpretability, computational efficiency, and flexibility. 
 
-The first step into selecting the variables for these models includes an exploratory analysis of our data set, utilizing a pairwise plot matrix. Through this process, potential correlations and patterns were highlighted, giving an idea of the parameters that might be useful to include in our models. Moving on, this models would utilize a data set that includes the means of all the variables included in this data set, after they have been normalized and scaled for a universal baseline. 
+The first step into selecting the variables for these models includes an exploratory analysis of our data set, utilizing a pairwise plot matrix, as well as looking at the full summary of the first implementation of the model to identify significant variables.Through this process, potential correlations and patterns were highlighted, giving an idea of the parameters that might be useful to include in our models. Moving on, this models would utilize a data set that includes the means of all the variables included in this data set, after they have been normalized and scaled for a universal baseline. 
 
 The models were trained on an augmented data set, generating variable ranges and applying the initial model to make predictions regarding the development status of a country. These variables' ranges are used in combination with median values for the remaining predictors to construct a grid for prediction. This separation of median values and ranges is done for visualization and interpretation purposes. This grid represents a range of values for each variable of interest. With the logistic regression model trained on the selected variables, predictions are made on this grid to estimate the probability of a country being classified as underdeveloped. 
 
