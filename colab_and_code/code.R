@@ -1,3 +1,4 @@
+
 library(tidyverse)
 library(here)
 library(maps)
@@ -6,54 +7,27 @@ library(broom)
 library(colorspace)
 world_df <- map_data("world")
 
-ranges <- sapply(full_stats_df[, numeric_cols], function(x) {
-  x <- na.omit(x)
-  c(min(x), max(x))
-})
-
-replace_na_with_median <- function(df, column_name) {
-  median_val <- median(df[[column_name]], na.rm = TRUE)
-  df[[column_name]][is.na(df[[column_name]])] <- median_val
-  return(df)
-}
-
 electricity_access <- read_csv("data/access_to_electricity/access_to_electricity.csv", 
                                skip = 4) |>
-  select(-c(3:34), -c(67:69))
+  select(-c(3:44), -c(67:69))
 
 countries <- c("Afghanistan", "Angola", "Bangladesh", "Benin", "Burkina Faso", "Burundi", "Cambodia", "Central African Republic", "Chad", "Comoros", "Congo, Dem. Rep.", "Djibouti", "Eritrea", "Ethiopia", "Gambia, The", "Guinea", "Guinea-Bissau", "Haiti", "Kiribati", "Lao PDR", "Lesotho", "Liberia", "Madagascar", "Malawi", "Mali", "Mauritania", "Mozambique", "Myanmar", "Nepal", "Niger", "Rwanda", "Sao Tome and Principe", "Senegal", "Sierra Leone", "Solomon Islands", "Somalia", "South Sudan", "Sudan", "Tanzania", "Timor-Leste", "Togo", "Tuvalu", "Uganda", "Yemen, Rep.", "Zambia")
 
 electricity_stats <- electricity_access |>
-  pivot_longer(c(3:34), 
+  pivot_longer(c(3:24), 
                names_to = "Year", 
                values_to = "Electricity Access") |>
   filter(!is.na(`Electricity Access`)) |>
   group_by(`Country Name`) |>
-  summarise(`mean_under_elec` = mean(`Electricity Access`, na.rm = TRUE),
-            `sd_under_elec` = sd(`Electricity Access`, na.rm = TRUE))
-
-underdeveloped_electricity <- electricity_access |>
-  pivot_longer(c(3:34), 
-               names_to = "Year", 
-               values_to = "Electricity Access") |>
-  filter(!is.na(`Electricity Access`)) 
-
-underdeveloped_map <- left_join(underdeveloped_electricity, world_df, by = c("Country Name"="region"))
-
-plot_1 <- ggplot()+
-  geom_polygon(data = world_df, mapping = aes(x = long, y = lat, group = group, label = region), fill = "grey")+
-  geom_polygon(data = underdeveloped_map, mapping = aes(x = long, y = lat, group = group, fill = `Electricity Access`, label = `Country Name`))+
-  scale_fill_continuous_sequential(palette = "Heat")+
-  theme_minimal()
-
-ggplotly(plot_1, tooltip = "label")
+  summarise(`mean_elec_access` = mean(`Electricity Access`, na.rm = TRUE),
+            `sd_elec_access` = sd(`Electricity Access`, na.rm = TRUE))
 
 agricultural_land <- read_csv("data/agricultural_land/agricultural_land.csv", 
                               skip = 4) |>
-  select(-c(3:34), -c(67:69)) 
+  select(-c(3:44), -c(67:69))
 
 agriculture_land_stats <- agricultural_land |>
-  pivot_longer(c(3:34), 
+  pivot_longer(c(3:24), 
                names_to = "Year", 
                values_to = "Agricultural Land") |>
   filter(!is.na(`Agricultural Land`)) |>
@@ -61,51 +35,51 @@ agriculture_land_stats <- agricultural_land |>
   summarise(`mean_agr_land` = mean(`Agricultural Land`, na.rm = TRUE),
             `sd_agr_land` = sd(`Agricultural Land`, na.rm = TRUE))
 
-freshwater_withdrawals <- read_csv("data/annual_freshwater_withdrawals/freshwater_withdrawals.csv", 
-                                   skip = 4) |>
-  select(-c(3:34), -c(67:69))
+population_growth <- read_csv("~/Desktop/Sixth Semester/ds334_final_project/ds334_final_project/data/population_growth_annual/population_growth.csv", 
+                              skip = 4) |>
+  select(-c(3:44), -c(67:69))
 
-freshwater_withdrawals_stats <- freshwater_withdrawals |>
-  pivot_longer(c(3:34), 
+population_growth_stats <- population_growth |>
+  pivot_longer(c(3:24), 
                names_to = "Year", 
-               values_to = "Freshwater Withdrawals") |>
-  filter(!is.na(`Freshwater Withdrawals`)) |>
+               values_to = "Population Growth Rate") |>
+  filter(!is.na(`Population Growth Rate`)) |>
   group_by(`Country Name`) |>
-  summarise(`mean_water_withd` = mean(`Freshwater Withdrawals`, na.rm = TRUE),
-            `sd_water_withd` = sd(`Freshwater Withdrawals`, na.rm = TRUE))
+  summarise(`mean_pop_growth` = mean(`Population Growth Rate`, na.rm = TRUE),
+            `sd_pop_growth` = sd(`Population Growth Rate`, na.rm = TRUE))
 
-atms <- read_csv("data/atms/atms.csv", 
-                 skip = 4) |>
-  select(-c(3:34), -c(67:69))
+primary_school_enrol <- read_csv("~/Desktop/Sixth Semester/ds334_final_project/ds334_final_project/data/primary_school_enrollment/primary_school.csv", 
+                                 skip = 4) |>
+  select(-c(3:44), -c(67:69))
 
-atms_stats <- atms |>
-  pivot_longer(c(3:34), 
+primary_school_enrol_stats <- primary_school_enrol |>
+  pivot_longer(c(3:24), 
                names_to = "Year", 
-               values_to = "ATMs") |>
-  filter(!is.na(`ATMs`)) |>
+               values_to = "Primary School Enrollment Rate") |>
+  filter(!is.na(`Primary School Enrollment Rate`)) |>
   group_by(`Country Name`) |>
-  summarise(`mean_atms` = mean(`ATMs`, na.rm = TRUE),
-            `sd_atms` = sd(`ATMs`,na.rm = TRUE))
+  summarise(`mean_prim_school` = mean(`Primary School Enrollment Rate`, na.rm = TRUE),
+            `sd_prim_school` = sd(`Primary School Enrollment Rate`,na.rm = TRUE))
 
-precipitation <- read_csv("data/avg_precipitation/precipitation_depth.csv", 
-                          skip = 4) |>
-  select(-c(3:34), -c(67:69))
+total_unemployment <- read_csv("~/Desktop/Sixth Semester/ds334_final_project/ds334_final_project/data/total_unemployment/total_unemployment.csv", 
+                               skip = 4) |>
+  select(-c(3:44), -c(67:69))
 
-precipitation_stats <- precipitation |>
-  pivot_longer(c(3:34), 
+total_unemployment_stats <- total_unemployment |>
+  pivot_longer(c(3:24), 
                names_to = "Year", 
-               values_to = "Precipitation") |>
-  filter(!is.na(`Precipitation`)) |>
+               values_to = "Total Unemployment") |>
+  filter(!is.na(`Total Unemployment`)) |>
   group_by(`Country Name`) |>
-  summarise(`mean_precip` = mean(`Precipitation`, na.rm = TRUE),
-            `sd_precip` = sd(`Precipitation`, na.rm = TRUE))
+  summarise(`mean_total_unempl` = mean(`Total Unemployment`, na.rm = TRUE),
+            `sd_total_unempl` = sd(`Total Unemployment`, na.rm = TRUE))
 
 sanitation <- read_csv("data/basic_sanitation_services/basic_sanitation.csv", 
                        skip = 4) |>
-  select(-c(3:34), -c(67:69))
+  select(-c(3:44), -c(67:69))
 
 sanitation_stats <- sanitation |>
-  pivot_longer(c(3:34), 
+  pivot_longer(c(3:24), 
                names_to = "Year", 
                values_to = "Sanitation") |>
   filter(!is.na(`Sanitation`)) |>
@@ -113,38 +87,12 @@ sanitation_stats <- sanitation |>
   summarise(`mean_sanit` = mean(`Sanitation`, na.rm = TRUE),
             `sd_sanit` = sd(`Sanitation`, na.rm = TRUE))
 
-broad_money <- read_csv("data/broad_money/broad_money.csv", 
-                        skip = 4) |>
-  select(-c(3:34), -c(67:69))
-
-broad_money_stats <- broad_money |>
-  pivot_longer(c(3:34), 
-               names_to = "Year", 
-               values_to = "Broad Money") |>
-  filter(!is.na(`Broad Money`)) |>
-  group_by(`Country Name`) |>
-  summarise(`mean_broad` = mean(`Broad Money`, na.rm = TRUE),
-            `sd_broad` = sd(`Broad Money`, na.rm = TRUE))
-
-agriculture_employment <- read_csv("data/employment_in_agr/employment_in_agr.csv", 
-                                   skip = 4) |>
-  select(-c(3:34), -c(67:69))
-
-agriculture_employment_stats <- agriculture_employment |>
-  pivot_longer(c(3:34), 
-               names_to = "Year", 
-               values_to = "Employment in Agriculture") |>
-  filter(!is.na(`Employment in Agriculture`)) |>
-  group_by(`Country Name`) |>
-  summarise(`mean_empl_agr` = mean(`Employment in Agriculture`, na.rm = TRUE),
-            `sd_empl_agr` = sd(`Employment in Agriculture`, na.rm = TRUE))
-
 fertility_rate <- read_csv("data/fertility_rate/fertility_rate.csv", 
                            skip = 4) |>
-  select(-c(3:34), -c(67:69))
+  select(-c(3:44), -c(67:69))
 
 fertility_rate_stats <- fertility_rate |>
-  pivot_longer(c(3:34), 
+  pivot_longer(c(3:24), 
                names_to = "Year", 
                values_to = "Fertility Rate") |>
   filter(!is.na(`Fertility Rate`)) |>
@@ -152,25 +100,12 @@ fertility_rate_stats <- fertility_rate |>
   summarise(`mean_fert_rate` = mean(`Fertility Rate`, na.rm = TRUE),
             `sd_fert_rate` = sd(`Fertility Rate`, na.rm = TRUE))
 
-gov_debt <- read_csv("data/gov_debt/central_gov_debt.csv", 
-                     skip = 4) |>
-  select(-c(3:34), -c(67:69))
-
-gov_debt_stats <- gov_debt |>
-  pivot_longer(c(3:34), 
-               names_to = "Year", 
-               values_to = "Government Debt") |>
-  filter(!is.na(`Government Debt`)) |>
-  group_by(`Country Name`) |>
-  summarise(`mean_gov_debt` = mean(`Government Debt`, na.rm = TRUE),
-            `sd_gov_debt` = sd(`Government Debt`, na.rm = TRUE))
-
 internet <- read_csv("data/internet/internet.csv", 
                      skip = 4) |>
-  select(-c(3:34), -c(67:69))
+  select(-c(3:44), -c(67:69))
 
 internet_stats <- internet |>
-  pivot_longer(c(3:34), 
+  pivot_longer(c(3:24), 
                names_to = "Year", 
                values_to = "Internet") |>
   filter(!is.na(`Internet`)) |>
@@ -180,10 +115,10 @@ internet_stats <- internet |>
 
 birth_life_exp <- read_csv("data/life_expectancy_birth/life_expectancy_birth.csv", 
                            skip = 4) |>
-  select(-c(3:34), -c(67:69))
+  select(-c(3:44), -c(67:69))
 
 birth_life_exp_stats <- birth_life_exp |>
-  pivot_longer(c(3:34), 
+  pivot_longer(c(3:24), 
                names_to = "Year", 
                values_to = "Life Expectancy at Birth") |>
   filter(!is.na(`Life Expectancy at Birth`)) |>
@@ -191,149 +126,117 @@ birth_life_exp_stats <- birth_life_exp |>
   summarise(`mean_life_exp` = mean(`Life Expectancy at Birth`, na.rm = TRUE),
             `sd_life_exp` = sd(`Life Expectancy at Birth`, na.rm = TRUE))
 
-poverty <- read_csv("data/poverty_headcount/poverty_headcount_ratio.csv", 
-                    skip = 4) |>
-  select(-c(3:34), -c(67:69))
-
-poverty_stats <- poverty |>
-  filter(`Country Name` %in% countries) |>
-  pivot_longer(c(3:34), 
-               names_to = "Year", 
-               values_to = "Poverty") |>
-  filter(!is.na(`Poverty`)) |>
-  group_by(`Country Name`) |>
-  summarise(`mean_pov` = mean(`Poverty`, na.rm = TRUE),
-            `sd_pov` = sd(`Poverty`, na.rm = TRUE))
-
-school_enrol <- read_csv("data/school_enrollment/school_enrollment.csv", 
-                         skip = 4) |>
-  select(-c(3:34), -c(67:69))
-
-school_enrol_stats <- school_enrol |>
-  filter(`Country Name` %in% countries) |>
-  pivot_longer(c(3:34), 
-               names_to = "Year", 
-               values_to = "School Enrollment") |>
-  filter(!is.na(`School Enrollment`)) |>
-  group_by(`Country Name`) |>
-  summarise(`mean_school_enr` = mean(`School Enrollment`, na.rm = TRUE),
-            `sd_school_enr` = sd(`School Enrollment`, na.rm = TRUE))
-
 full_stats_df <- agriculture_land_stats |>
-  left_join(agriculture_employment_stats, by = "Country Name") |>
-  left_join(atms_stats, by = "Country Name") |>
   left_join(birth_life_exp_stats, by = "Country Name") |>
-  left_join(broad_money_stats, by = "Country Name") |>
   left_join(electricity_stats, by = "Country Name") |>
   left_join(fertility_rate_stats, by = "Country Name") |>
-  left_join(freshwater_withdrawals_stats, by = "Country Name") |>
-  left_join(gov_debt_stats, by = "Country Name") |>
   left_join(internet_stats, by = "Country Name") |>
-  left_join(poverty_stats, by = "Country Name") |>
-  left_join(precipitation_stats, by = "Country Name") |>
   left_join(sanitation_stats, by = "Country Name") |>
-  left_join(school_enrol_stats, by = "Country Name") 
+  left_join(population_growth_stats, by = "Country Name") |>
+  left_join(primary_school_enrol_stats, by = "Country Name") |>
+  left_join(total_unemployment_stats, by = "Country Name") 
 
 full_stats_df <- 
   full_stats_df |>
   mutate(Underdeveloped = ifelse(`Country Name` %in% countries, 1, 0))
 
 library(GGally)
-ggpairs(data = full_stats_df, columns = c(2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28))
+ggpairs(data = full_stats_df, columns = c(2, 4, 6, 8, 10, 12, 14, 16, 18))
 
+# Get the means column for each variable
+full_means_df <- full_stats_df |>
+  select(contains("mean"))
 
-#### Logistic Regression Model Attempt
+numeric_columns <- sapply(full_means_df, is.numeric)
 
-underdeveloped <- full_stats_df |>
-  filter(Underdeveloped == 1)
+scaled_data <- scale(full_means_df[, numeric_columns])
 
-developed <- full_stats_df |>
-  filter(Underdeveloped != 1)
+scaled_data_with_undev <- scaled_data |>
+  as.data.frame() |>
+  mutate(Underdeveloped = full_stats_df$Underdeveloped) |>
+  na.omit()
 
-# Identify numeric columns
-numeric_cols <- sapply(full_stats_df, is.numeric)
-
-median_water_withd = median(full_stats_df$mean_water_withd, na.rm = TRUE)
-median_agr_land = median(full_stats_df$mean_agr_land, na.rm = TRUE)
-median_empl_agr = median(full_stats_df$mean_empl_agr, na.rm = TRUE)
-median_life_exp = median(full_stats_df$mean_life_exp, na.rm = TRUE)
-median_under_elec = median(full_stats_df$mean_under_elec, na.rm = TRUE)
-median_fert_rate = median(full_stats_df$mean_fert_rate, na.rm = TRUE)
-median_water_withd =  median(full_stats_df$mean_water_withd, na.rm = TRUE)
-median_gov_debt = median(full_stats_df$mean_gov_debt, na.rm = TRUE)
-median_precip = median(full_stats_df$mean_precip, na.rm = TRUE)
-median_sanit = median(full_stats_df$mean_sanit, na.rm = TRUE)
+median_agr_land = median(scaled_data_with_undev$mean_agr_land, na.rm = TRUE)
+median_life_exp = median(scaled_data_with_undev$mean_life_exp, na.rm = TRUE)
+median_elec_access = median(scaled_data_with_undev$mean_elec_access, na.rm = TRUE)
+median_fert_rate = median(scaled_data_with_undev$mean_fert_rate, na.rm = TRUE)
+median_sanit = median(scaled_data_with_undev$mean_sanit, na.rm = TRUE)
+median_population_growth = median(scaled_data_with_undev$mean_pop_growth, na.rm = TRUE)
+median_primary_school = median(scaled_data_with_undev$mean_prim_school, na.rm = TRUE)
+median_total_unempl = median(scaled_data_with_undev$mean_total_unempl, na.rm = TRUE)
+median_internet = median(scaled_data_with_undev$mean_inter, na.rm = TRUE)
 
 library(modelr)
 ## First Attempt
-# Fit the logistic regression model with selected variables
-model_glm <- glm(Underdeveloped ~ mean_agr_land + mean_life_exp + mean_under_elec + mean_fert_rate + mean_precip,
-                 data = full_stats_df, family = "binomial")
+# Fit the logistic regression model with all the variables
+model_glm <- glm(Underdeveloped ~ .,
+                 data = scaled_data_with_undev, family = "binomial")
 
 # Check the summary of the model
 summary(model_glm)
 
-# Create the grid for prediction
-grid <- full_stats_df |>
-  data_grid(
-    mean_agr_land = seq_range(c(0.529988, 83.730378), n = 3),
-    mean_life_exp = seq_range(c(46.14012, 82.19024), n = 3),
-    mean_under_elec = median_under_elec,
-    mean_fert_rate = median_fert_rate,
-    mean_precip = seq_range(c(18.100, 3219.742), n = 3),
-    mean_water_withd = median_water_withd,
-    mean_sanit = median_sanit
-  )
+# Identify numeric columns
+numeric_cols <- sapply(scaled_data_with_undev, is.numeric)
 
-# Predict probabilities for the grid
-aug_model <- augment(model_glm, newdata = grid, se_fit = TRUE) |>
-  mutate(.predprob = plogis(.fitted))
+# Compute range for each numeric column, removing NA values
+ranges <- sapply(scaled_data_with_undev[, numeric_cols], function(x) {
+  x <- na.omit(x)
+  c(min(x), max(x))
+})
 
-# Visualize the predictions
-ggplot(data = aug_model, aes(x = mean_life_exp, y = .predprob)) +
-  geom_line(aes(color = as.factor(round(mean_agr_land, 2)))) +
-  facet_wrap(~mean_precip)+
-  labs(x = "Mean Life Expectancy", y = "Predicted Probability", color = "Mean Agricultural Land")+
-  theme_minimal()
+underdeveloped <- scaled_data_with_undev |>
+  filter(Underdeveloped == 1)
+
+developed <- scaled_data_with_undev |>
+  filter(Underdeveloped != 1) 
 
 ## Second Attempt
-# Fit the logistic regression model with selected variables
-model_glm <- glm(Underdeveloped ~ mean_agr_land + mean_life_exp + mean_under_elec + mean_fert_rate + mean_precip,
-                 data = full_stats_df, family = "binomial")
+# Fit the logistic regression model with selected variables using their range and the median for the rest
+# Used the first model to come up with the most "significant" ones
+
+model_glm <- glm(Underdeveloped ~ .,
+                 data = scaled_data_with_undev, family = "binomial")
 
 # Create the grid for prediction
 grid <- full_stats_df |>
   data_grid(
-    mean_agr_land = seq_range(c(0.529988, 83.730378), n = 3),
-    mean_life_exp = median_life_exp,
-    mean_under_elec = seq_range(c(4.210244, 100), n = 3),
-    mean_fert_rate = median_fert_rate,
-    mean_precip = seq_range(c(18.100, 3219.742), n = 3),
-    mean_water_withd = median_water_withd,
-    mean_sanit = median_sanit
+    mean_agr_land = median_agr_land,
+    mean_life_exp = seq_range(c(-2.627905, 1.588857), n = 20),
+    mean_elec_access = seq_range(c(-2.6785616, 0.7295024), n = 5),
+    mean_fert_rate = seq_range(c(-1.274220, 3.082338), n = 20),
+    mean_sanit = median_sanit, 
+    mean_inter = median_internet,
+    mean_pop_growth = median_population_growth,
+    mean_prim_school = median_primary_school, 
+    mean_total_unempl = median_total_unempl
   )
 
-# Predict probabilities for the grid
+# Predict probabilities that a country is Underdeveloped
 aug_model <- augment(model_glm, newdata = grid, se_fit = TRUE) |>
   mutate(.predprob = plogis(.fitted))
 
 # Visualize the predictions
-ggplot(data = aug_model, aes(x = mean_agr_land, y = .predprob)) +
-  geom_line(aes(color = as.factor(round(mean_under_elec, 2)))) +
-  facet_wrap(~mean_precip) +
-  labs(x = "Mean Agricultural Land", y = "Predicted Probability", color = "Mean Precipitation Rate") +
+ggplot(data = aug_model, aes(x = mean_fert_rate, y = .predprob)) +
+  geom_line(aes(color = as.factor(round(mean_life_exp, 2)))) +
+  facet_wrap(~as.factor(round(mean_elec_access, 2))) +
+  labs(x = "Standardized Mean Fertility Rate", y = "Predicted Probability", color = "Standardized Mean Electricity Access") +
   theme_minimal()
 
-# Combination 2
+## Third Attempt
+# Fit the logistic regression model with selected variables using their range and the median for the rest
+# Used the first model to include the ones that were significant but not as much
+
 grid <- full_stats_df |>
   data_grid(
     mean_agr_land = median_agr_land,
-    mean_life_exp = seq_range(c(46.14012, 82.19024), n = 3),
-    mean_under_elec = median_under_elec,
-    mean_fert_rate = seq_range(c(1.104000, 7.502063), n = 3),
-    mean_precip = median_precip,
-    mean_water_withd = seq_range(c(0.02026736, 6495.832000), n = 3),
-    mean_sanit = median_sanit
+    mean_life_exp = seq_range(c(-2.627905, 1.588857), n = 10),
+    mean_elec_access = median_elec_access,
+    mean_fert_rate = seq_range(c(-1.274220, 3.082338), n = 10),
+    mean_sanit = median_sanit, 
+    mean_inter = median_internet,
+    mean_pop_growth =seq_range(c(-2.022998, 4.438928), n = 3),
+    mean_prim_school = median_primary_school, 
+    mean_total_unempl = median_total_unempl
   )
 
 # Predict probabilities for the grid
@@ -341,45 +244,27 @@ aug_model <- augment(model_glm, newdata = grid, se_fit = TRUE) |>
   mutate(.predprob = plogis(.fitted))
 
 # Visualize the predictions
-ggplot(data = aug_model, aes(x = mean_life_exp, y = .predprob)) +
-  geom_line(aes(color = as.factor(round(mean_water_withd, 2)))) +
-  facet_wrap(~mean_fert_rate) +
-  labs(x = "Mean Life Expectancy", y = "Predicted Probability", color = "Mean Fertility Rate") +
+ggplot(data = aug_model, aes(x = mean_fert_rate, y = .predprob)) +
+  geom_line(aes(color = as.factor(round(mean_life_exp, 2)))) +
+  facet_wrap(~mean_pop_growth) +
+  labs(x = "Standardized Mean Fertility Rate", y = "Predicted Probability", color = "Standardized Mean Life Expectancy") +
   theme_minimal()
 
-# Combination 3
-grid <- full_stats_df |>
-  data_grid(
-    mean_agr_land = seq_range(c(0.529988, 83.730378), n = 3),
-    mean_life_exp = median_life_exp,
-    mean_under_elec = median_under_elec,
-    mean_fert_rate = median_fert_rate,
-    mean_precip = seq_range(c(18.100, 3219.742), n = 3),
-    mean_water_withd = median_water_withd,
-    mean_sanit = seq_range(c(6.029739, 100), n = 3)
-  )
+## Forth Attempt
+# Fit the logistic regression model with selected variables using their range and the median for the rest
+# Used the first model to include the ones that were significant but not as much
 
-# Predict probabilities for the grid
-aug_model <- augment(model_glm, newdata = grid, se_fit = TRUE) |>
-  mutate(.predprob = plogis(.fitted))
-
-# Visualize the predictions
-ggplot(data = aug_model, aes(x = mean_agr_land, y = .predprob)) +
-  geom_line(aes(color = as.factor(round(mean_sanit, 2)))) +
-  facet_wrap(~mean_precip) +
-  labs(x = "Mean Agricultural Land", y = "Predicted Probability", color = "Mean Sanitation Rate") +
-  theme_minimal()
-
-# Combination 4
 grid <- full_stats_df |>
   data_grid(
     mean_agr_land = median_agr_land,
-    mean_life_exp = seq_range(c(46.14012, 82.19024), n = 3),
-    mean_under_elec = seq_range(c(4.210244, 100), n = 3),
-    mean_fert_rate = median_fert_rate,
-    mean_precip = seq_range(c(18.100, 3219.742), n = 3),
-    mean_water_withd = median_water_withd,
-    mean_sanit = median_sanit
+    mean_life_exp = median_life_exp,
+    mean_elec_access = median_elec_access,
+    mean_fert_rate = seq_range(c(-1.308798, 2.850897), n = 10),
+    mean_sanit = median_sanit, 
+    mean_inter = seq_range(c(-1.511381, 2.405766), n = 10),
+    mean_pop_growth =seq_range(c(-2.221712, 3.779502), n = 3),
+    mean_prim_school = median_primary_school, 
+    mean_total_unempl = median_total_unempl
   )
 
 # Predict probabilities for the grid
@@ -387,78 +272,88 @@ aug_model <- augment(model_glm, newdata = grid, se_fit = TRUE) |>
   mutate(.predprob = plogis(.fitted))
 
 # Visualize the predictions
-ggplot(data = aug_model, aes(x = mean_life_exp, y = .predprob)) +
-  geom_line(aes(color = as.factor(round(mean_under_elec, 2)))) +
-  facet_wrap(~mean_precip) +
-  labs(x = "Mean Life Expectancy", y = "Predicted Probability", color = "Mean Electricity Access Rate") +
+ggplot(data = aug_model, aes(x = mean_fert_rate, y = .predprob)) +
+  geom_line(aes(color = as.factor(round(mean_inter, 2)))) +
+  facet_wrap(~mean_pop_growth) +
+  labs(x = "Standardized Mean Fertility Rate", y = "Predicted Probability", color = "Standardized Mean Population Growth") +
   theme_minimal()
 
-## In general, what we have seen from the above plots is that attempting to fit a Logistic Regression Model 
-## give different combinations of proxies does not do a good job. 
-## Therefore, a more complex model might be able to interpret the relationships between the various variables that we have. 
+total_countries <- full_stats_df |>
+  select(`Country Name`)
 
-library(keras)
-library(tensorflow)
-install_tensorflow(envname = "r-tensorflow")
+full_means_df <- full_means_df |>
+  cbind(total_countries)
 
-library(reticulate)
-py_install("pandas")
+total_countries_no_na <- full_means_df |>
+  na.omit() |>
+  select(`Country Name`)
 
-# Preprocess the data
-full_means_df <- full_stats_df |>
-  select(contains("mean")) 
+scaled_data_with_undev_arranged <- scaled_data_with_undev |>
+  cbind(total_countries_no_na) |>
+  arrange(mean_agr_land)|>
+  select(mean_agr_land, `Country Name`)
 
-full_means_df <- replace_na_with_median(full_means_df, "mean_agr_land")
-full_means_df <- replace_na_with_median(full_means_df, "mean_empl_agr")
-full_means_df <- replace_na_with_median(full_means_df, "mean_atms")
-full_means_df <- replace_na_with_median(full_means_df, "mean_life_exp")
-full_means_df <- replace_na_with_median(full_means_df, "mean_broad")
-full_means_df <- replace_na_with_median(full_means_df, "mean_under_elec")
-full_means_df <- replace_na_with_median(full_means_df, "mean_fert_rate")
-full_means_df <- replace_na_with_median(full_means_df, "mean_water_withd")
-full_means_df <- replace_na_with_median(full_means_df, "mean_gov_debt")
-full_means_df <- replace_na_with_median(full_means_df, "mean_inter")
-full_means_df <- replace_na_with_median(full_means_df, "mean_pov")
-full_means_df <- replace_na_with_median(full_means_df, "mean_precip")
-full_means_df <- replace_na_with_median(full_means_df, "mean_sanit")
-full_means_df <- replace_na_with_median(full_means_df, "mean_school_enr")
+predictions <- read.csv("data/predicted_dataset.csv")
 
-scaled_data <- scale(full_means_df[, sapply(full_means_df, is.numeric)])
-set.seed(123)
+predictions <- predictions |>
+  arrange(mean_agr_land) |>
+  cbind(`Country Name` = scaled_data_with_undev_arranged$`Country Name`)
 
-# Split the data into training and testing sets 80% and 20%, as we did in Machine Learning
-train_indices <- sample(1:nrow(scaled_data), 0.8 * nrow(scaled_data))
-test_indices <- setdiff(1:nrow(scaled_data), train_indices)
+underdeveloped_map <- world_df |>
+  mutate(Underdeveloped = as.factor(ifelse(region %in% countries, 1, 0)))
 
-train_data <- scaled_data[train_indices, ]
-test_data <- scaled_data[test_indices, ]
-
-# Design the network
-network = keras_model_sequential(
-  layer_dense(units = 4, activation = "relu", input_shape = 14),
-  layer_dense(units = 6, activation = "relu"), 
-  layer_dense(units = 8, activation = "relu"), 
-  layer_dense(units = 1, activation = "sigmoid")
-)
-
-network |>
-  compile(
-    loss = "binary_crossentropy",
-    optimizer = optimizer_adam(learning_rate = 0.001), 
-    metrics = c("accuracy", "loss")
+plot_1 <- ggplot()+
+  geom_polygon(data = world_df, mapping = aes(x = long, y = lat, group = group, label = region), fill = "grey")+
+  geom_polygon(data = underdeveloped_map, mapping = aes(x = long, y = lat, group = group, fill = Underdeveloped, label = region))+
+  labs(title = "Actual Representation of Underdeveloped Countries")+
+  scale_fill_manual(values = c("0" = "grey", "1" = "darkblue")) + 
+  theme_minimal()+
+  theme(
+    legend.position = "none"
   )
 
+ggplotly(plot_1, tooltip = "label")
 
+predictions <- predictions |>
+  mutate(Underdeveloped = ifelse(Predicted_output >= 0.5, 1, 0))
 
+predicted_full_df <- left_join(predictions, world_df, by = c("Country Name" = "region"))
 
+plot_2 <- ggplot()+
+  geom_polygon(data = world_df, mapping = aes(x = long, y = lat, group = group, label = region), fill = "grey")+
+  geom_polygon(data = predicted_full_df, mapping = aes(x = long, y = lat, group = group, fill = as.factor(Underdeveloped), 
+                                                       label = `Country Name`))+
+  labs(title = "Representation of Underdeveloped Countries using Predictions of Neural Network")+
+  scale_fill_manual(values = c("0" = "grey", "1" = "darkred")) + 
+  theme_minimal()+
+  theme(
+    legend.position = "none"
+  )
 
+ggplotly(plot_2, tooltip = "label")
 
+summary_actual <- scaled_data_with_undev |>
+  summarise(Underdeveloped = sum(Underdeveloped), 
+            Developed = n() - Underdeveloped)
 
+summary_predicted <- predictions |>
+  summarise(Underdeveloped = sum(Underdeveloped), 
+            Developed = n() - Underdeveloped)
 
+library(pander)
 
+# Convert summaries to data frames
+summary_actual_df <- as.data.frame(summary_actual)
+summary_predicted_df <- as.data.frame(summary_predicted)
 
+# Add row names for clarity
+row.names(summary_actual_df) <- "Actual"
+row.names(summary_predicted_df) <- "Predicted"
 
+combined_summary <- rbind(summary_actual_df, summary_predicted_df)
 
+# Print combined summary using pander
+pander(combined_summary, caption = "Summary of Actual and Predicted Classes")
 
 
 
